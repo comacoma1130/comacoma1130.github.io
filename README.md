@@ -47,7 +47,8 @@ python tools/build_photos.py "C:\Users\hm-miyashita\Desktop\宮下\実験\coma"
 ## 公開
 
 GitHub Pages（`Settings > Pages > Branch: main / root`）。
-公開 URL は `https://miyasita384.github.io/pagu.github.io/`。
+リポジトリ名を `miyasita384.github.io` にしてあるので、公開 URL は `https://miyasita384.github.io/` になる。
+名刺の QR コードにはこの URL を入れる。
 
 ## 動作の細かい設定（`script.js` 先頭）
 
@@ -57,3 +58,8 @@ GitHub Pages（`Settings > Pages > Branch: main / root`）。
 | `FAILSAFE_SEC` | 動画が再生できなかったとき強制的にリンク欄を出す秒数 | `9` |
 | `SLIDE_MIN_MS` / `SLIDE_MAX_MS` | 写真の切り替え間隔（この範囲でランダム） | `2000` / `3000` |
 | `PHOTO_COUNT` | `photos/` に入っている写真の枚数 | `22` |
+| `VIDEO_ASPECT` | 動画の縦横比。動画を差し替えたら合わせる | `16 / 9` |
+
+動画は 16:9 の横長なので、スマホの縦画面では左右が大きく見切れる。
+画面の比率が動画から 20% 以上ずれている場合は自動でレターボックス表示に切り替わり、
+余白は同じ映像をぼかしたものが埋める（横長画面では 2 本目をデコードしないので負荷は増えない）。

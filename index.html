@@ -25,6 +25,8 @@
 
     <!-- オープニング：こまが走って寄ってくる動画 -->
     <div id="intro">
+      <!-- 縦画面では動画が見切れるので、後ろにぼかした同じ映像を敷いて全体を映す -->
+      <video id="intro-blur" muted playsinline webkit-playsinline preload="auto" aria-hidden="true" disablepictureinpicture></video>
       <video id="intro-video" muted playsinline webkit-playsinline preload="auto" disablepictureinpicture>
         <source src="coma-run.mp4" type="video/mp4">
       </video>
@@ -37,6 +39,7 @@
 
     <!-- リンク欄 -->
     <main id="card" hidden>
+     <div class="card-inner">
       <header class="card-head">
         <p class="kicker">PUG</p>
         <h1>こま</h1>
@@ -48,6 +51,7 @@
       <footer class="card-foot">
         <button id="replay" type="button">🐾 もう一度こまを呼ぶ</button>
       </footer>
+     </div>
     </main>
 
     <script src="script.js"></script>

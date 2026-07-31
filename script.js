@@ -7,22 +7,36 @@
 const LINKS = [
   {
     title: "Instagram",
-    sub: "こまの写真と日常",
-    url: "https://www.instagram.com/", // ★ここを自分のアカウント URL に
+    sub: "@coma__days",
+    url: "https://www.instagram.com/coma__days",
     icon: "instagram",
     accent: "linear-gradient(135deg,#f9ce34,#ee2a7b 48%,#6228d7)",
   },
   {
     title: "TikTok",
     sub: "動くこま",
-    url: "https://www.tiktok.com/", // ★ここを自分のアカウント URL に
+    url: "https://www.tiktok.com/t/ZS9hNdhbGU23o-cHRxk/",
     icon: "tiktok",
     accent: "linear-gradient(135deg,#25f4ee,#000 55%,#fe2c55)",
   },
   {
-    title: "LINE スタンプ",
-    sub: "こまのスタンプはこちら",
-    url: "https://store.line.me/stickershop", // ★ここをスタンプの販売 URL に
+    title: "きゅるりんパグのこま",
+    sub: "LINE スタンプ",
+    url: "https://line.me/S/sticker/33533275/?lang=ja",
+    icon: "line",
+    accent: "linear-gradient(135deg,#06c755,#04a544)",
+  },
+  {
+    title: "きゅるりんパグのこま 第二弾",
+    sub: "LINE スタンプ",
+    url: "https://line.me/S/sticker/33782414/?lang=ja",
+    icon: "line",
+    accent: "linear-gradient(135deg,#06c755,#04a544)",
+  },
+  {
+    title: "notきゅるりんパグのこま",
+    sub: "LINE スタンプ",
+    url: "https://line.me/S/sticker/34081770/?lang=ja",
     icon: "line",
     accent: "linear-gradient(135deg,#06c755,#04a544)",
   },
@@ -55,9 +69,14 @@ const ICONS = {
   link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13.5a4 4 0 0 0 5.7.3l3-3A4 4 0 0 0 13 5.2l-1.7 1.7"/><path d="M14 10.5a4 4 0 0 0-5.7-.3l-3 3A4 4 0 0 0 11 18.8l1.7-1.7"/></svg>',
 };
 
+/** 動画のアスペクト比（1280x720）。画面比率がこれから離れているとレターボックス表示にする */
+const VIDEO_ASPECT = 16 / 9;
+const ASPECT_TOLERANCE = 0.2;
+
 const body = document.body;
 const intro = document.getElementById("intro");
 const video = document.getElementById("intro-video");
+const blurVideo = document.getElementById("intro-blur");
 const tapToStart = document.getElementById("tap-to-start");
 const skipBtn = document.getElementById("skip");
 const replayBtn = document.getElementById("replay");
@@ -151,6 +170,37 @@ function stopSlideshow() {
   slides.forEach((s) => s.classList.remove("is-visible"));
 }
 
+/* ---------- 動画の表示方法（見切れる縦画面ではぼかし背景を敷く） ---------- */
+let letterbox = false;
+
+function updateVideoFit() {
+  const aspect = window.innerWidth / window.innerHeight;
+  const ratio = aspect / VIDEO_ASPECT;
+  const next = ratio < 1 - ASPECT_TOLERANCE || ratio > 1 + ASPECT_TOLERANCE;
+  if (next === letterbox) return;
+  letterbox = next;
+  intro.classList.toggle("letterbox", letterbox);
+  if (letterbox && !blurVideo.src) {
+    // 必要になったときだけ読み込む（横長画面では 2 本目をデコードしない）
+    blurVideo.src = video.currentSrc || "coma-run.mp4";
+    blurVideo.load();
+  }
+  syncBlur();
+}
+
+function syncBlur() {
+  if (!letterbox || !blurVideo.src) return;
+  try {
+    if (Math.abs(blurVideo.currentTime - video.currentTime) > 0.25) {
+      blurVideo.currentTime = video.currentTime;
+    }
+  } catch (_) {
+    /* metadata 未読み込み時は無視 */
+  }
+  if (video.paused) blurVideo.pause();
+  else blurVideo.play().catch(() => {});
+}
+
 /* ---------- 動画 → リンク欄への切り替え ---------- */
 let revealed = false;
 let failsafeTimer = null;
@@ -168,10 +218,12 @@ function reveal() {
   setTimeout(() => {
     body.classList.add("intro-done");
     video.pause();
+    blurVideo.pause();
   }, 1600);
 }
 
 function onTimeUpdate() {
+  syncBlur();
   const d = video.duration;
   if (!isFinite(d) || d <= 0) return;
   if (video.currentTime >= Math.max(d - REVEAL_LEAD, d * 0.55)) reveal();
@@ -185,6 +237,7 @@ function playIntro() {
       tapToStart.hidden = false;
     });
   }
+  syncBlur();
 }
 
 function startIntro() {
@@ -195,6 +248,7 @@ function startIntro() {
   stopSlideshow();
   try {
     video.currentTime = 0;
+    blurVideo.currentTime = 0;
   } catch (_) {
     /* まだ metadata が無い場合は無視 */
   }
@@ -205,8 +259,12 @@ function startIntro() {
 
 /* ---------- 起動 ---------- */
 buildLinks();
+updateVideoFit();
 PHOTOS.slice(0, 3).forEach(preload); // 最初の数枚だけ先読みしておく
 
+window.addEventListener("resize", updateVideoFit);
+window.addEventListener("orientationchange", updateVideoFit);
+video.addEventListener("play", syncBlur);
 video.addEventListener("timeupdate", onTimeUpdate);
 video.addEventListener("ended", reveal);
 video.addEventListener("error", reveal);
