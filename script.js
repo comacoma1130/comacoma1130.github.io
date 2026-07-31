@@ -56,6 +56,12 @@ const FAILSAFE_SEC = 9;
 /** 写真の切り替え間隔（ミリ秒）— この範囲でランダム */
 const SLIDE_MIN_MS = 2000;
 const SLIDE_MAX_MS = 3000;
+/** 写真を全画面に引き伸ばしてよい下限。
+ *  「画面いっぱいにしたときに見える割合」がこの値以上なら全画面（cover）、
+ *  下回る写真は切らずに全体を表示し、余白は同じ写真のぼかしで埋める。
+ *  0.97 = ほぼ切らない。0.8 くらいにすると縦写真が全画面になり見栄えは上がるが、
+ *  端に写っている耳などが少し切れることがある。 */
+const COVER_THRESHOLD = 0.97;
 
 /* ========================================================================= */
 
@@ -129,10 +135,34 @@ function nextPhoto() {
   return pick;
 }
 
+/** 写真の縦横比。読み込めた順に埋まる */
+const aspects = new Map();
+
+/** 画面を全面に使っても写真がほとんど切れないなら cover、
+ *  大きく切れてしまうなら contain（＝こまの顔が欠けないことを優先） */
+function shouldCover(src) {
+  const a = aspects.get(src);
+  if (!a) return false; // 縦横比が分からないうちは切らない方に倒す
+  const screen = window.innerWidth / window.innerHeight;
+  const visible = a > screen ? screen / a : a / screen;
+  return visible >= COVER_THRESHOLD;
+}
+
+/** 画面の向きが変わったときや、後から縦横比が分かったときに表示方法を見直す */
+function refreshFit() {
+  for (const el of slides) {
+    if (el.dataset.src) el.classList.toggle("cover", shouldCover(el.dataset.src));
+  }
+}
+
 function showPhoto(src) {
   const el = slides[layer % slides.length];
   const prev = slides[(layer + 1) % slides.length];
-  el.style.backgroundImage = `url("${src}")`;
+  const url = `url("${src}")`;
+  el.dataset.src = src;
+  el.querySelector(".pic").style.backgroundImage = url;
+  el.querySelector(".fill").style.backgroundImage = url;
+  el.classList.toggle("cover", shouldCover(src));
   el.classList.remove("is-visible");
   void el.offsetWidth; // Ken Burns をやり直すためのリフロー
   el.classList.add("is-visible");
@@ -143,16 +173,29 @@ function showPhoto(src) {
 function preload(src) {
   const img = new Image();
   img.decoding = "async";
+  img.addEventListener("load", () => {
+    if (!img.naturalHeight) return;
+    aspects.set(src, img.naturalWidth / img.naturalHeight);
+    refreshFit();
+  });
   img.src = src;
   return img;
+}
+
+/** 次に出す写真を 1 枚先に読み込んでおく（表示前に縦横比を確定させるため） */
+let upcoming = null;
+
+function primeNext() {
+  upcoming = nextPhoto();
+  preload(upcoming);
+  return upcoming;
 }
 
 function scheduleSlide() {
   const wait = SLIDE_MIN_MS + Math.random() * (SLIDE_MAX_MS - SLIDE_MIN_MS);
   slideTimer = setTimeout(() => {
-    const src = nextPhoto();
-    preload(src);
-    showPhoto(src);
+    showPhoto(upcoming || primeNext());
+    primeNext();
     scheduleSlide();
   }, wait);
 }
@@ -160,7 +203,8 @@ function scheduleSlide() {
 function startSlideshow() {
   if (slideshowRunning) return;
   slideshowRunning = true;
-  showPhoto(nextPhoto());
+  showPhoto(primeNext());
+  primeNext();
   scheduleSlide();
 }
 
@@ -262,8 +306,14 @@ buildLinks();
 updateVideoFit();
 PHOTOS.slice(0, 3).forEach(preload); // 最初の数枚だけ先読みしておく
 
-window.addEventListener("resize", updateVideoFit);
-window.addEventListener("orientationchange", updateVideoFit);
+window.addEventListener("resize", () => {
+  updateVideoFit();
+  refreshFit();
+});
+window.addEventListener("orientationchange", () => {
+  updateVideoFit();
+  refreshFit();
+});
 video.addEventListener("play", syncBlur);
 video.addEventListener("timeupdate", onTimeUpdate);
 video.addEventListener("ended", reveal);

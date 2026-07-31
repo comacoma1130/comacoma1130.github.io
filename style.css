@@ -1,7 +1,7 @@
 :root {
   --ink: #fff;
   --bg: #1b1512;
-  --card-bg: rgba(24, 18, 15, 0.52);
+  --card-bg: rgba(24, 18, 15, 0.46);
   --card-line: rgba(255, 255, 255, 0.22);
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -35,22 +35,46 @@ body { touch-action: manipulation; }
 .slide {
   position: absolute;
   inset: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 1.1s ease;
+  will-change: opacity;
+}
+
+.slide.is-visible { opacity: 1; }
+
+/* 写真本体。画面と縦横比が近いときだけ cover（全画面）、
+   離れているときは contain にして写真を切らずに全体を映す */
+.slide .pic {
+  position: absolute;
+  inset: 0;
+  /* リンクのボタンに隠れにくいよう、少しだけ上寄せにする */
+  background-position: center 38%;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.slide.cover .pic { background-size: cover; }
+
+/* contain のときにできる余白を、同じ写真をぼかしたもので埋める */
+.slide .fill {
+  position: absolute;
+  inset: 0;
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
-  opacity: 0;
-  transition: opacity 1.1s ease;
-  will-change: opacity, transform;
+  transform: scale(1.15);
+  filter: blur(30px) brightness(0.72) saturate(1.15);
+  will-change: transform;
 }
 
-.slide.is-visible {
-  opacity: 1;
-  animation: kenburns 12s ease-out forwards;
-}
+.slide.cover .fill { display: none; }
+
+.slide.is-visible .fill { animation: kenburns 14s ease-out forwards; }
 
 @keyframes kenburns {
-  from { transform: scale(1.0); }
-  to   { transform: scale(1.09); }
+  from { transform: scale(1.15); }
+  to   { transform: scale(1.28); }
 }
 
 #scrim {
@@ -61,8 +85,8 @@ body { touch-action: manipulation; }
   opacity: 0;
   transition: opacity 1.2s ease;
   background:
-    radial-gradient(120% 85% at 50% 8%, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.62) 72%),
-    linear-gradient(180deg, rgba(0, 0, 0, 0.42) 0%, rgba(0, 0, 0, 0.18) 38%, rgba(0, 0, 0, 0.72) 100%);
+    radial-gradient(125% 90% at 50% 12%, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.3) 78%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.02) 34%, rgba(0, 0, 0, 0.46) 100%);
 }
 
 body.is-revealed #scrim { opacity: 1; }
@@ -207,7 +231,8 @@ body.is-revealed .card-foot { animation-delay: 0.85s; }
   font-size: 11px;
   letter-spacing: 0.42em;
   text-indent: 0.42em;
-  color: rgba(255, 255, 255, 0.72);
+  color: rgba(255, 255, 255, 0.82);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
 }
 
 .card-head h1 {
@@ -216,15 +241,15 @@ body.is-revealed .card-foot { animation-delay: 0.85s; }
   font-weight: 700;
   letter-spacing: 0.16em;
   text-indent: 0.16em;
-  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.55);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7), 0 1px 26px rgba(0, 0, 0, 0.5);
 }
 
 .lead {
   margin: 10px 0 0;
   font-size: 14px;
   letter-spacing: 0.06em;
-  color: rgba(255, 255, 255, 0.86);
-  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.6);
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.75), 0 1px 16px rgba(0, 0, 0, 0.5);
 }
 
 /* リンク欄（選択ボックス） */
@@ -306,12 +331,13 @@ body.is-revealed .card-foot { animation-delay: 0.85s; }
 #replay {
   border: 0;
   background: none;
-  color: rgba(255, 255, 255, 0.62);
+  color: rgba(255, 255, 255, 0.75);
   font: inherit;
   font-size: 12.5px;
   letter-spacing: 0.08em;
   padding: 8px 12px;
   cursor: pointer;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
 }
 
 #replay:hover { color: rgba(255, 255, 255, 0.95); }
