@@ -11,7 +11,7 @@
 from pathlib import Path
 
 import segno
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
 from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
@@ -21,6 +21,12 @@ OUT = ROOT / "meishi"
 PHOTOS = ROOT / "photos"
 
 URL = "https://comacoma1130.github.io/"
+
+# 表に載せる写真。印刷用なので、Web 用に圧縮する前の元画像があればそちらを使う
+CARD_PHOTO_ORIGINAL = Path(r"C:\Users\hm-miyashita\Desktop\宮下\実験\coma\IMG_7864.jpg")
+CARD_PHOTO_FALLBACK = ROOT / "photos" / "coma-15.jpg"
+# 円の中心を元画像のどこに置くか(0-1)と、切り出す正方形の大きさ(短辺に対する比率)
+CARD_PHOTO_CX, CARD_PHOTO_CY, CARD_PHOTO_ZOOM = 0.50, 0.498, 0.98
 
 # --- 寸法 ---
 DPI = 350
@@ -94,7 +100,7 @@ def paw_pattern(img: Image.Image, color, step_mm: float = 15.0, r_mm: float = 1.
 
 def circle_photo(src: Path, size: int, cx: float, cy: float, zoom: float) -> Image.Image:
     """写真を正方形に切り出して円形にする。cx/cy は元画像に対する中心位置(0-1)。"""
-    im = Image.open(src).convert("RGB")
+    im = ImageOps.exif_transpose(Image.open(src)).convert("RGB")
     side = int(min(im.width, im.height) * zoom)
     left = int(im.width * cx - side / 2)
     top = int(im.height * cy - side / 2)
@@ -144,7 +150,8 @@ def build_front() -> Image.Image:
 
     # 円形写真（左）
     photo_d = px(31)
-    ph = circle_photo(PHOTOS / "coma-07.jpg", photo_d, 0.52, 0.30, 0.78)
+    src = CARD_PHOTO_ORIGINAL if CARD_PHOTO_ORIGINAL.exists() else CARD_PHOTO_FALLBACK
+    ph = circle_photo(src, photo_d, CARD_PHOTO_CX, CARD_PHOTO_CY, CARD_PHOTO_ZOOM)
     ring = Image.new("RGBA", (photo_d + px(2.4), photo_d + px(2.4)), (0, 0, 0, 0))
     ImageDraw.Draw(ring).ellipse([0, 0, ring.width - 1, ring.height - 1], fill=WHITE + (255,))
     ring.alpha_composite(ph, (px(1.2), px(1.2)))
