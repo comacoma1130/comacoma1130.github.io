@@ -2,26 +2,54 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>こまの日常</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#1b1512">
+    <title>こま | Coma Days</title>
+    <meta name="description" content="パグのこまです。よろしくおねがいします。">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="こま | Coma Days">
+    <meta property="og:description" content="パグのこまです。よろしくおねがいします。">
+    <meta property="og:image" content="ogp.jpg">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐶</text></svg>">
+    <link rel="preload" as="video" href="coma-run.mp4">
     <link rel="stylesheet" href="style.css">
   </head>
+
   <body>
-    <!-- 最初に表示される動画 -->
-    <div id="intro-wrapper">
-      <video id="intro-video" autoplay muted playsinline webkit-playsinline>
-        <source src="pagu.mp4" type="video/mp4">
-        お使いのブラウザでは動画を再生できません。
+    <!-- 背景：こま写真集（リンク表示中に 2〜3 秒ごとに切り替わる） -->
+    <div id="gallery" aria-hidden="true">
+      <div class="slide" data-layer="a"></div>
+      <div class="slide" data-layer="b"></div>
+    </div>
+    <div id="scrim" aria-hidden="true"></div>
+
+    <!-- オープニング：こまが走って寄ってくる動画 -->
+    <div id="intro">
+      <video id="intro-video" muted playsinline webkit-playsinline preload="auto" disablepictureinpicture>
+        <source src="coma-run.mp4" type="video/mp4">
       </video>
+      <button id="skip" type="button">スキップ</button>
+      <button id="tap-to-start" type="button" hidden>
+        <span class="paw">🐾</span>
+        <span>タップしてスタート</span>
+      </button>
     </div>
 
-    <!-- トップページ内容 -->
-    <div id="main-content">
-      <h1>Coma Days</h1>
-      <p>URL</p>
-    </div>
+    <!-- リンク欄 -->
+    <main id="card" hidden>
+      <header class="card-head">
+        <p class="kicker">PUG</p>
+        <h1>こま</h1>
+        <p class="lead">あそびに来てくれてありがとう！</p>
+      </header>
+
+      <nav id="links" aria-label="こまのリンク集"></nav>
+
+      <footer class="card-foot">
+        <button id="replay" type="button">🐾 もう一度こまを呼ぶ</button>
+      </footer>
+    </main>
 
     <script src="script.js"></script>
   </body>
 </html>
-
