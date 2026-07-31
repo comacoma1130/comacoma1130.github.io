@@ -1,10 +1,16 @@
 :root {
   --ink: #fff;
   --bg: #1b1512;
-  --card-bg: rgba(24, 18, 15, 0.46);
-  --card-line: rgba(255, 255, 255, 0.22);
+  --card-bg: rgba(22, 16, 13, 0.26);
+  --card-line: rgba(255, 255, 255, 0.3);
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  /* スマホのアドレスバーの出入りで高さが変わるため、実際に見えている高さを使う */
+  --app-h: 100%;
+}
+
+@supports (height: 100dvh) {
+  :root { --app-h: 100dvh; }
 }
 
 * { box-sizing: border-box; }
@@ -12,7 +18,7 @@
 html, body {
   margin: 0;
   padding: 0;
-  height: 100%;
+  height: var(--app-h);
   overflow: hidden;
   background: var(--bg);
   color: var(--ink);
@@ -28,6 +34,7 @@ body { touch-action: manipulation; }
 #gallery {
   position: fixed;
   inset: 0;
+  height: var(--app-h);
   z-index: 0;
   background: var(--bg);
 }
@@ -80,6 +87,7 @@ body { touch-action: manipulation; }
 #scrim {
   position: fixed;
   inset: 0;
+  height: var(--app-h);
   z-index: 1;
   pointer-events: none;
   opacity: 0;
@@ -95,6 +103,7 @@ body.is-revealed #scrim { opacity: 1; }
 #intro {
   position: fixed;
   inset: 0;
+  height: var(--app-h);
   z-index: 20;
   background: #000;
   opacity: 1;
@@ -188,6 +197,7 @@ body.intro-done #intro { display: none; }
 #card {
   position: fixed;
   inset: 0;
+  height: var(--app-h);
   z-index: 10;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -272,17 +282,17 @@ body.is-revealed .card-foot { animation-delay: 0.85s; }
   color: var(--ink);
   text-decoration: none;
   text-align: left;
-  -webkit-backdrop-filter: blur(14px) saturate(1.3);
-  backdrop-filter: blur(14px) saturate(1.3);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  -webkit-backdrop-filter: blur(10px) saturate(1.25);
+  backdrop-filter: blur(10px) saturate(1.25);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
 }
 
 .link:hover,
 .link:focus-visible {
   transform: translateY(-2px);
-  background: rgba(36, 27, 22, 0.66);
-  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(36, 27, 22, 0.44);
+  border-color: rgba(255, 255, 255, 0.48);
 }
 
 .link:active { transform: translateY(0) scale(0.985); }
@@ -307,6 +317,8 @@ body.is-revealed .card-foot { animation-delay: 0.85s; }
   font-size: 15px;
   font-weight: 600;
   letter-spacing: 0.04em;
+  /* 背景が透けるぶん、明るい写真の上でも読めるよう影で支える */
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85), 0 1px 12px rgba(0, 0, 0, 0.6);
 }
 
 .link .sub {
@@ -314,7 +326,8 @@ body.is-revealed .card-foot { animation-delay: 0.85s; }
   margin-top: 2px;
   font-size: 11.5px;
   letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.66);
+  color: rgba(255, 255, 255, 0.82);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85), 0 1px 10px rgba(0, 0, 0, 0.55);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -344,6 +357,22 @@ body.is-revealed .card-foot { animation-delay: 0.85s; }
 
 @media (min-height: 800px) {
   .card-inner { gap: 32px; }
+}
+
+/* 小さめのスマホや、アドレスバーが出ている状態でもスクロールなしで収まるように */
+@media (max-height: 700px) {
+  .card-inner {
+    gap: 18px;
+    padding-top: calc(18px + var(--safe-top));
+    padding-bottom: calc(18px + var(--safe-bottom));
+  }
+  .card-head h1 { font-size: clamp(30px, 9vw, 42px); }
+  .lead { font-size: 13px; margin-top: 6px; }
+  #links { gap: 8px; }
+  .link { padding: 10px 14px; border-radius: 16px; }
+  .link .icon { flex: 0 0 34px; width: 34px; height: 34px; border-radius: 11px; }
+  .link .icon svg { width: 20px; height: 20px; }
+  .card-foot { margin-top: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {

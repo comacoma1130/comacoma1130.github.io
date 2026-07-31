@@ -44,6 +44,24 @@ python tools/build_photos.py "C:\Users\hm-miyashita\Desktop\宮下\実験\coma"
 - iPhone 写真の回転情報を反映したうえで、**GPS を含む Exif は削除**される
 - 枚数が変わったら `script.js` の `PHOTO_COUNT` も合わせて変更する
 
+## 名刺（ラクスル入稿用）
+
+`python tools/build_meishi.py` で `meishi/` に生成される。
+
+| ファイル | 用途 |
+| --- | --- |
+| `meishi-coma.pdf` | **ラクスルにアップロードするのはこれ**（1ページ目=表、2ページ目=裏） |
+| `preview-omote.png` / `preview-ura.png` | 確認用。赤=仕上がり線、青=安全領域のガイド入り |
+| `meishi-omote.png` / `meishi-ura.png` | ガイドなしの原寸画像 |
+| `qr-coma.png` / `qr-coma.svg` | QR 単体（他の用途向け） |
+
+- 仕上がり 91x55mm / データ 97x61mm（塗り足し 3mm）/ 安全領域 85x49mm / 350dpi
+- QR は `https://comacoma1130.github.io/` を誤り訂正レベル M で生成。
+  25mm 印刷時で 1 モジュール 0.86mm あり、印刷での読み取りに十分な余裕がある
+- ビルド時に、書き出した PDF から QR を読み取り直して内容が一致するか自動で検品している
+- 文字は画像化されているのでフォントのアウトライン化は不要
+- カラーは RGB。ラクスル側で CMYK に変換されるため、印刷では画面よりわずかに色が沈む
+
 ## 公開
 
 GitHub Pages（`Settings > Pages > Branch: main / root`）。
