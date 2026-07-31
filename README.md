@@ -47,7 +47,7 @@ python tools/build_photos.py "C:\Users\hm-miyashita\Desktop\宮下\実験\coma"
 ## 公開
 
 GitHub Pages（`Settings > Pages > Branch: main / root`）。
-リポジトリ名を `miyasita384.github.io` にしてあるので、公開 URL は `https://miyasita384.github.io/` になる。
+公開 URL: **https://comacoma1130.github.io/**
 名刺の QR コードにはこの URL を入れる。
 
 ## 動作の細かい設定（`script.js` 先頭）
