@@ -8,6 +8,7 @@
 - 350dpi でラスタライズしてから PDF に配置（文字はアウトライン不要）
 - 1 ページ目 = 表、2 ページ目 = 裏
 """
+import math
 from pathlib import Path
 
 import segno
@@ -22,11 +23,10 @@ PHOTOS = ROOT / "photos"
 
 URL = "https://comacoma1130.github.io/"
 
-# 表に載せる写真。印刷用なので、Web 用に圧縮する前の元画像があればそちらを使う
-CARD_PHOTO_ORIGINAL = Path(r"C:\Users\hm-miyashita\Desktop\宮下\実験\coma\IMG_7864.jpg")
-CARD_PHOTO_FALLBACK = ROOT / "photos" / "coma-15.jpg"
+# 表に載せる写真。印刷用なので、Web 用に圧縮する前の元画像を使う
+CARD_PHOTO = Path(r"C:\Users\hm-miyashita\Desktop\宮下\実験\coma\IMG_8351.jpg")
 # 円の中心を元画像のどこに置くか(0-1)と、切り出す正方形の大きさ(短辺に対する比率)
-CARD_PHOTO_CX, CARD_PHOTO_CY, CARD_PHOTO_ZOOM = 0.50, 0.498, 0.98
+CARD_PHOTO_CX, CARD_PHOTO_CY, CARD_PHOTO_ZOOM = 0.469, 0.357, 0.95
 
 # --- 寸法 ---
 DPI = 350
@@ -48,8 +48,11 @@ CREAM = (253, 245, 233)
 CREAM_D = (245, 232, 212)
 BROWN = (74, 52, 40)
 BROWN_L = (139, 110, 92)
-ACCENT = (232, 143, 122)
+ACCENT = (74, 115, 55)        # 唐草の緑
+ACCENT_INK = (244, 239, 219)  # 唐草の蔓の色
 WHITE = (255, 255, 255)
+
+BAND_MM = 8.0  # 帯の高さ（うち 3mm は塗り足しで切り落とされる）
 
 # --- フォント（丸ゴシック優先） ---
 FONT_DIR = Path(r"C:\Windows\Fonts")
@@ -78,6 +81,60 @@ def paw(d: ImageDraw.ImageDraw, cx: float, cy: float, r: float, color) -> None:
             [cx + (tx - rx) * r, cy + (ty - ry) * r, cx + (tx + rx) * r, cy + (ty + ry) * r],
             fill=color,
         )
+
+
+def _spiral(cx: float, cy: float, r0: float, turns: float, start: float,
+            direction: int, steps: int = 72, shrink: float = 0.86):
+    """渦巻き（唐草のカール）の座標列。"""
+    pts = []
+    for i in range(steps + 1):
+        t = i / steps
+        ang = start + direction * turns * 2 * math.pi * t
+        r = r0 * (1 - shrink * t)
+        pts.append((cx + r * math.cos(ang), cy + r * math.sin(ang)))
+    return pts
+
+
+def _leaf(size: int, color, angle: float) -> Image.Image:
+    """唐草の葉（しずく型）を描いて回転させる。"""
+    ss = 3
+    s = size * ss
+    sprite = Image.new("RGBA", (s, s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(sprite)
+    d.ellipse([s * 0.10, s * 0.28, s * 0.95, s * 0.72], fill=color)
+    d.polygon([(s * 0.02, s * 0.5), (s * 0.42, s * 0.30), (s * 0.42, s * 0.70)], fill=color)
+    return sprite.resize((size, size), Image.LANCZOS).rotate(angle, resample=Image.BICUBIC)
+
+
+def karakusa_band(w: int, h: int) -> Image.Image:
+    """唐草模様の帯を作る（緑地に蔓と葉）。"""
+    band = Image.new("RGBA", (w, h), ACCENT + (255,))
+    ink = ACCENT_INK + (255,)
+    lw = max(2, int(h * 0.085))
+    tile = int(h * 2.3)
+    cy = h * 0.5
+    amp = h * 0.17
+
+    d = ImageDraw.Draw(band)
+    for ox in range(-tile, w + tile, tile):
+        # 主となる蔓（ゆるやかな波）
+        stem = [(ox + tile * t / 40, cy + amp * math.sin(2 * math.pi * (t / 40)))
+                for t in range(41)]
+        d.line(stem, fill=ink, width=lw, joint="curve")
+
+        # 上に伸びるカール
+        d.line(_spiral(ox + tile * 0.24, cy - h * 0.24, h * 0.30, 1.15, math.pi * 0.55, 1),
+               fill=ink, width=lw, joint="curve")
+        # 下に伸びるカール
+        d.line(_spiral(ox + tile * 0.72, cy + h * 0.24, h * 0.27, 1.15, -math.pi * 0.45, -1),
+               fill=ink, width=lw, joint="curve")
+
+        # 葉
+        for fx, fy, ang, sz in ((0.48, -0.30, 35, 0.34), (0.95, 0.30, -145, 0.30)):
+            size = int(h * sz)
+            lf = _leaf(size, ink, ang)
+            band.alpha_composite(lf, (int(ox + tile * fx - size / 2), int(cy + h * fy - size / 2)))
+    return band
 
 
 def paw_pattern(img: Image.Image, color, step_mm: float = 15.0, r_mm: float = 1.25) -> None:
@@ -138,20 +195,35 @@ def text_center(d, cx, y, s, f, fill, spacing_mm=0.0):
     return top + (bbox[3] - bbox[1]) + bbox[1]
 
 
+def fit_font(d, text: str, max_mm: float, start_mm: float, path: Path = JP_ROUND):
+    """max_mm の幅に収まるまでフォントサイズを少しずつ下げる。"""
+    size = start_mm
+    while size > 1.0:
+        f = font(path, size)
+        if d.textlength(text, font=f) <= px(max_mm):
+            return f
+        size -= 0.1
+    return font(path, 1.0)
+
+
+def draw_bands(img: Image.Image) -> None:
+    """上下に唐草模様の帯を敷く。"""
+    bh = px(BAND_MM)
+    band = karakusa_band(W, bh)
+    img.alpha_composite(band, (0, 0))
+    img.alpha_composite(band.transpose(Image.FLIP_TOP_BOTTOM), (0, H - bh))
+
+
 # ============================== 表 ==============================
 def build_front() -> Image.Image:
     img = Image.new("RGBA", (W, H), CREAM + (255,))
     paw_pattern(img, CREAM_D)
+    draw_bands(img)
     d = ImageDraw.Draw(img)
-
-    # 上下のアクセント帯（塗り足しまで届かせる）
-    d.rectangle([0, 0, W, px(BLEED + 2.2)], fill=ACCENT + (255,))
-    d.rectangle([0, H - px(BLEED + 2.2), W, H], fill=ACCENT + (255,))
 
     # 円形写真（左）
     photo_d = px(31)
-    src = CARD_PHOTO_ORIGINAL if CARD_PHOTO_ORIGINAL.exists() else CARD_PHOTO_FALLBACK
-    ph = circle_photo(src, photo_d, CARD_PHOTO_CX, CARD_PHOTO_CY, CARD_PHOTO_ZOOM)
+    ph = circle_photo(CARD_PHOTO, photo_d, CARD_PHOTO_CX, CARD_PHOTO_CY, CARD_PHOTO_ZOOM)
     ring = Image.new("RGBA", (photo_d + px(2.4), photo_d + px(2.4)), (0, 0, 0, 0))
     ImageDraw.Draw(ring).ellipse([0, 0, ring.width - 1, ring.height - 1], fill=WHITE + (255,))
     ring.alpha_composite(ph, (px(1.2), px(1.2)))
@@ -165,7 +237,7 @@ def build_front() -> Image.Image:
     f_kana = font(JP_ROUND, 3.0)
     f_sub = font(JP_ROUND, 3.4)
 
-    d.text((tx, photo_y + px(4.0)), "パグの", font=f_kana, fill=BROWN_L + (255,))
+    d.text((tx, photo_y + px(4.0)), "こまの日常", font=f_kana, fill=BROWN_L + (255,))
     d.text((tx, photo_y + px(6.4)), "こま", font=f_name, fill=BROWN + (255,))
 
     line_y = photo_y + px(20.0)
@@ -173,7 +245,7 @@ def build_front() -> Image.Image:
         [tx, line_y, tx + px(30), line_y + px(0.5)], radius=px(0.25), fill=ACCENT + (255,)
     )
 
-    d.text((tx, line_y + px(2.6)), "こまと なかよくしてね", font=f_sub, fill=BROWN_L + (255,))
+    d.text((tx, line_y + px(2.6)), "なかよくしてね", font=f_sub, fill=BROWN_L + (255,))
     d.text((tx, line_y + px(7.0)), "@coma__days", font=f_sub, fill=BROWN + (255,))
     return img
 
@@ -182,9 +254,8 @@ def build_front() -> Image.Image:
 def build_back() -> Image.Image:
     img = Image.new("RGBA", (W, H), CREAM + (255,))
     paw_pattern(img, CREAM_D)
+    draw_bands(img)
     d = ImageDraw.Draw(img)
-    d.rectangle([0, 0, W, px(BLEED + 2.2)], fill=ACCENT + (255,))
-    d.rectangle([0, H - px(BLEED + 2.2), W, H], fill=ACCENT + (255,))
 
     # QR（右側）
     qr_mm = 25.0
@@ -206,22 +277,21 @@ def build_back() -> Image.Image:
 
     # 左側の案内
     tx = M + px(1.5)
-    f_lead = font(JP_ROUND, 4.6)
-    f_body = font(JP_ROUND, 3.0)
-    f_small = font(JP_ROUND, 2.6)
-
-    top = qr_y + px(1.0)
-    d.text((tx, top), "スマホでピッ！", font=f_lead, fill=BROWN + (255,))
-    d.text((tx, top + px(7.0)), "こまが走ってきます", font=f_body, fill=BROWN_L + (255,))
+    col_mm = (qr_x - tx) / (DPI / 25.4) - 3.0  # QR までの空き幅
+    f_lead = fit_font(d, "お友達になってください！", col_mm, 4.6)
+    f_small = font(JP_ROUND, 2.8)
 
     items = ["Instagram", "TikTok", "LINEスタンプ"]
-    iy = top + px(12.4)
-    for label in items:
-        paw(d, tx + px(1.2), iy + px(1.5), px(1.3), ACCENT + (255,))
-        d.text((tx + px(3.6), iy), label, font=f_small, fill=BROWN + (255,))
-        iy += px(4.2)
+    block_h = px(6.6) + px(4.4) * len(items)
+    top = (H - block_h) // 2
 
-    d.text((tx, H - M - px(3.4)), "comacoma1130.github.io", font=f_small, fill=BROWN_L + (255,))
+    d.text((tx, top), "お友達になってください！", font=f_lead, fill=BROWN + (255,))
+
+    iy = top + px(6.6)
+    for label in items:
+        paw(d, tx + px(1.3), iy + px(1.6), px(1.4), ACCENT + (255,))
+        d.text((tx + px(3.8), iy), label, font=f_small, fill=BROWN + (255,))
+        iy += px(4.4)
     return img
 
 
