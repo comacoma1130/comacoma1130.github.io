@@ -3,42 +3,45 @@
    ========================================================================= */
 
 /** リンク欄に並ぶボタン。url を実際のリンクに書き換えてください。
- *  不要なものは行ごと削除、増やしたい場合は同じ形で追記できます。 */
+ *  不要なものは行ごと削除、増やしたい場合は同じ形で追記できます。
+ *  size: "half"    … 2 つ並べて横半分（アイコン + 名前だけ）
+ *        "compact" … 横いっぱいで背の低い行
+ *        省略      … 横いっぱいの標準の行（sub を付けると 2 行になる） */
 const LINKS = [
   {
     title: "Instagram",
-    sub: "@coma__days",
     url: "https://www.instagram.com/coma__days",
     icon: "instagram",
     accent: "linear-gradient(135deg,#f9ce34,#ee2a7b 48%,#6228d7)",
+    size: "half",
   },
   {
     title: "TikTok",
-    sub: "動くこま",
     url: "https://www.tiktok.com/t/ZS9hNdhbGU23o-cHRxk/",
     icon: "tiktok",
     accent: "linear-gradient(135deg,#25f4ee,#000 55%,#fe2c55)",
+    size: "half",
   },
   {
     title: "きゅるりんパグのこま",
-    sub: "LINE スタンプ",
     url: "https://line.me/S/sticker/33533275/?lang=ja",
     icon: "line",
     accent: "linear-gradient(135deg,#06c755,#04a544)",
+    size: "compact",
   },
   {
     title: "きゅるりんパグのこま 第二弾",
-    sub: "LINE スタンプ",
     url: "https://line.me/S/sticker/33782414/?lang=ja",
     icon: "line",
     accent: "linear-gradient(135deg,#06c755,#04a544)",
+    size: "compact",
   },
   {
     title: "notきゅるりんパグのこま",
-    sub: "LINE スタンプ",
     url: "https://line.me/S/sticker/34081770/?lang=ja",
     icon: "line",
     accent: "linear-gradient(135deg,#06c755,#04a544)",
+    size: "compact",
   },
 ];
 
@@ -97,16 +100,16 @@ function buildLinks() {
   linksEl.innerHTML = "";
   for (const item of LINKS) {
     const a = document.createElement("a");
-    a.className = "link";
+    a.className = "link" + (item.size ? ` ${item.size}` : "");
     a.href = item.url;
     a.target = "_blank";
     a.rel = "noopener noreferrer";
     a.innerHTML =
       `<span class="icon" style="background:${item.accent || ""}">${ICONS[item.icon] || ICONS.link}</span>` +
-      `<span class="txt"><span class="title"></span><span class="sub"></span></span>` +
+      `<span class="txt"><span class="title"></span>${item.sub ? '<span class="sub"></span>' : ""}</span>` +
       `<span class="chev" aria-hidden="true">›</span>`;
     a.querySelector(".title").textContent = item.title;
-    a.querySelector(".sub").textContent = item.sub || "";
+    if (item.sub) a.querySelector(".sub").textContent = item.sub;
     linksEl.appendChild(a);
   }
 }

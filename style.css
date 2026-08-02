@@ -263,20 +263,21 @@ body.is-revealed .card-foot { animation-delay: 0.85s; }
 
 /* リンク欄（選択ボックス） */
 #links {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
   width: 100%;
   max-width: 380px;
 }
 
 .link {
+  grid-column: 1 / -1;
   display: flex;
   align-items: center;
-  gap: 13px;
-  padding: 12px 16px;
+  gap: 11px;
+  padding: 10px 13px;
   border: 1px solid var(--card-line);
-  border-radius: 18px;
+  border-radius: 15px;
   /* 背景は完全に透過。写真がそのまま見えるようにする */
   background: transparent;
   color: var(--ink);
@@ -295,25 +296,54 @@ body.is-revealed .card-foot { animation-delay: 0.85s; }
 .link:active { transform: translateY(0) scale(0.985); }
 
 .link .icon {
-  flex: 0 0 38px;
-  width: 38px;
-  height: 38px;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
   display: grid;
   place-items: center;
-  border-radius: 12px;
+  border-radius: 11px;
   background: var(--accent, rgba(255, 255, 255, 0.14));
   color: #fff;
 }
 
-.link .icon svg { width: 22px; height: 22px; display: block; }
+.link .icon svg { width: 19px; height: 19px; display: block; }
+
+/* 半分の幅で 2 つ並ぶタイル（Instagram / TikTok） */
+.link.half {
+  grid-column: span 1;
+  gap: 9px;
+  padding: 10px 11px;
+}
+
+.link.half .chev { display: none; }
+
+/* 背の低い行（LINE スタンプ） */
+.link.compact {
+  padding: 7px 13px;
+  border-radius: 13px;
+  gap: 10px;
+}
+
+.link.compact .icon {
+  flex: 0 0 27px;
+  width: 27px;
+  height: 27px;
+  border-radius: 9px;
+}
+
+.link.compact .icon svg { width: 15px; height: 15px; }
+.link.compact .title { font-size: 13px; }
 
 .link .txt { flex: 1 1 auto; min-width: 0; }
 
 .link .title {
   display: block;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   /* 背景が透けるぶん、明るい写真の上でも読めるよう影で支える */
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85), 0 1px 12px rgba(0, 0, 0, 0.6);
 }
@@ -365,10 +395,12 @@ body.is-revealed .card-foot { animation-delay: 0.85s; }
   }
   .card-head h1 { font-size: clamp(30px, 9vw, 42px); }
   .lead { font-size: 13px; margin-top: 6px; }
-  #links { gap: 8px; }
-  .link { padding: 10px 14px; border-radius: 16px; }
-  .link .icon { flex: 0 0 34px; width: 34px; height: 34px; border-radius: 11px; }
-  .link .icon svg { width: 20px; height: 20px; }
+  #links { gap: 7px; }
+  .link { padding: 8px 12px; border-radius: 14px; }
+  .link .icon { flex: 0 0 30px; width: 30px; height: 30px; border-radius: 10px; }
+  .link .icon svg { width: 17px; height: 17px; }
+  .link.compact { padding: 6px 12px; }
+  .link.compact .icon { flex: 0 0 25px; width: 25px; height: 25px; }
   .card-foot { margin-top: 0; }
 }
 

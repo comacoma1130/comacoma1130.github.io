@@ -12,7 +12,8 @@
     <meta property="og:image" content="ogp.jpg">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐶</text></svg>">
     <link rel="preload" as="video" href="coma-run.mp4">
-    <link rel="stylesheet" href="style.css">
+    <!-- ?v= はキャッシュ対策。style.css / script.js を直したらこの数字を 1 つ増やす -->
+    <link rel="stylesheet" href="style.css?v=2">
   </head>
 
   <body>
@@ -54,6 +55,6 @@
      </div>
     </main>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=2"></script>
   </body>
 </html>
