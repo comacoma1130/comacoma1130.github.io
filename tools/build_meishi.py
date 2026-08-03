@@ -237,10 +237,14 @@ def build_front() -> Image.Image:
     f_kana = font(JP_ROUND, 3.0)
     f_sub = font(JP_ROUND, 3.4)
 
-    d.text((tx, photo_y + px(4.0)), "こまの日常", font=f_kana, fill=BROWN_L + (255,))
-    d.text((tx, photo_y + px(6.4)), "こま", font=f_name, fill=BROWN + (255,))
+    # 「こまの日常」と「こま」は、実際の字形の下端を測ってから間隔を取る
+    kana_y = photo_y + px(2.6)
+    d.text((tx, kana_y), "こまの日常", font=f_kana, fill=BROWN_L + (255,))
 
-    line_y = photo_y + px(20.0)
+    name_y = kana_y + f_kana.getbbox("こまの日常")[3] + px(2.4)
+    d.text((tx, name_y), "こま", font=f_name, fill=BROWN + (255,))
+
+    line_y = name_y + f_name.getbbox("こま")[3] + px(2.2)
     d.rounded_rectangle(
         [tx, line_y, tx + px(30), line_y + px(0.5)], radius=px(0.25), fill=ACCENT + (255,)
     )

@@ -4,40 +4,41 @@
 
 /** リンク欄に並ぶボタン。url を実際のリンクに書き換えてください。
  *  不要なものは行ごと削除、増やしたい場合は同じ形で追記できます。
- *  size: "half"    … 2 つ並べて横半分（アイコン + 名前だけ）
+ *  size: "icon"    … アイコンだけの丸ボタン。連続するものは横一列に並ぶ
  *        "compact" … 横いっぱいで背の低い行
- *        省略      … 横いっぱいの標準の行（sub を付けると 2 行になる） */
+ *        省略      … 横いっぱいの標準の行（sub を付けると 2 行になる）
+ *  title はアイコンだけの場合も必要（読み上げと補助表示に使う） */
 const LINKS = [
   {
     title: "Instagram",
     url: "https://www.instagram.com/coma__days",
     icon: "instagram",
     accent: "linear-gradient(135deg,#f9ce34,#ee2a7b 48%,#6228d7)",
-    size: "half",
+    size: "icon",
   },
   {
     title: "TikTok",
     url: "https://www.tiktok.com/t/ZS9hNdhbGU23o-cHRxk/",
     icon: "tiktok",
     accent: "linear-gradient(135deg,#25f4ee,#000 55%,#fe2c55)",
-    size: "half",
+    size: "icon",
   },
   {
-    title: "きゅるりんパグのこま",
+    title: "こまスタンプ",
     url: "https://line.me/S/sticker/33533275/?lang=ja",
     icon: "line",
     accent: "linear-gradient(135deg,#06c755,#04a544)",
     size: "compact",
   },
   {
-    title: "きゅるりんパグのこま 第二弾",
+    title: "こまスタンプPrt2",
     url: "https://line.me/S/sticker/33782414/?lang=ja",
     icon: "line",
     accent: "linear-gradient(135deg,#06c755,#04a544)",
     size: "compact",
   },
   {
-    title: "notきゅるりんパグのこま",
+    title: "こまスタンプPrt3",
     url: "https://line.me/S/sticker/34081770/?lang=ja",
     icon: "line",
     accent: "linear-gradient(135deg,#06c755,#04a544)",
@@ -98,6 +99,8 @@ const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matc
 /* ---------- リンク欄を組み立てる ---------- */
 function buildLinks() {
   linksEl.innerHTML = "";
+  let iconRow = null;
+
   for (const item of LINKS) {
     const a = document.createElement("a");
     a.className = "link" + (item.size ? ` ${item.size}` : "");
@@ -110,7 +113,21 @@ function buildLinks() {
       `<span class="chev" aria-hidden="true">›</span>`;
     a.querySelector(".title").textContent = item.title;
     if (item.sub) a.querySelector(".sub").textContent = item.sub;
-    linksEl.appendChild(a);
+
+    if (item.size === "icon") {
+      // アイコンだけのボタンは名前が出ないので、読み上げ用に名前を持たせる
+      a.setAttribute("aria-label", item.title);
+      a.title = item.title;
+      if (!iconRow) {
+        iconRow = document.createElement("div");
+        iconRow.className = "icon-row";
+        linksEl.appendChild(iconRow);
+      }
+      iconRow.appendChild(a);
+    } else {
+      iconRow = null;
+      linksEl.appendChild(a);
+    }
   }
 }
 
