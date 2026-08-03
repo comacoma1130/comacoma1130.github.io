@@ -336,23 +336,37 @@ body.is-revealed .card-foot { animation-delay: 0.85s; }
 .link.icon .icon svg { width: 23px; height: 23px; }
 .link.icon:hover { background: transparent; }
 
-/* 背の低い行（LINE スタンプ） */
-.link.compact {
-  padding: 5px 12px;
-  border-radius: 11px;
-  gap: 9px;
+/* 背の低い行（LINE スタンプ）。連続するものは 1 つの枠にまとめる */
+.link-group {
+  border: 1px solid var(--card-line);
+  border-radius: 12px;
+  overflow: hidden;
 }
+
+.link.compact {
+  border: 0;
+  border-radius: 0;
+  padding: 4px 11px;
+  gap: 8px;
+}
+
+.link.compact + .link.compact {
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.link.compact:hover,
+.link.compact:focus-visible { transform: none; }
 
 .link.compact .icon {
-  flex: 0 0 21px;
-  width: 21px;
-  height: 21px;
-  border-radius: 7px;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
 }
 
-.link.compact .icon svg { width: 13px; height: 13px; }
-.link.compact .title { font-size: 12.5px; }
-.link.compact .chev { font-size: 13px; }
+.link.compact .icon svg { width: 12px; height: 12px; }
+.link.compact .title { font-size: 12px; }
+.link.compact .chev { font-size: 12px; }
 
 .link .txt { flex: 1 1 auto; min-width: 0; }
 
@@ -421,8 +435,8 @@ body.is-revealed .card-foot { animation-delay: 0.85s; }
   .link .icon svg { width: 17px; height: 17px; }
   .link.icon .icon { flex: 0 0 42px; width: 42px; height: 42px; border-radius: 50%; }
   .link.icon .icon svg { width: 22px; height: 22px; }
-  .link.compact { padding: 4px 12px; }
-  .link.compact .icon { flex: 0 0 22px; width: 22px; height: 22px; }
+  .link.compact { padding: 3px 10px; }
+  .link.compact .icon { flex: 0 0 19px; width: 19px; height: 19px; }
   .card-foot { margin-top: 0; }
 }
 

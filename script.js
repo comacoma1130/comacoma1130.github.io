@@ -100,6 +100,7 @@ const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matc
 function buildLinks() {
   linksEl.innerHTML = "";
   let iconRow = null;
+  let group = null;
 
   for (const item of LINKS) {
     const a = document.createElement("a");
@@ -118,14 +119,25 @@ function buildLinks() {
       // アイコンだけのボタンは名前が出ないので、読み上げ用に名前を持たせる
       a.setAttribute("aria-label", item.title);
       a.title = item.title;
+      group = null;
       if (!iconRow) {
         iconRow = document.createElement("div");
         iconRow.className = "icon-row";
         linksEl.appendChild(iconRow);
       }
       iconRow.appendChild(a);
+    } else if (item.size === "compact") {
+      // 連続する compact は 1 つの枠にまとめて、区切り線で仕切る
+      iconRow = null;
+      if (!group) {
+        group = document.createElement("div");
+        group.className = "link-group";
+        linksEl.appendChild(group);
+      }
+      group.appendChild(a);
     } else {
       iconRow = null;
+      group = null;
       linksEl.appendChild(a);
     }
   }
