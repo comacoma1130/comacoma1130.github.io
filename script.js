@@ -4,9 +4,12 @@
 
 /** リンク欄に並ぶボタン。url を実際のリンクに書き換えてください。
  *  不要なものは行ごと削除、増やしたい場合は同じ形で追記できます。
- *  size: "icon"    … アイコンだけの丸ボタン。連続するものは横一列に並ぶ
+ *  size: "icon"    … アイコンだけの丸ボタン。row が同じものが横一列に並ぶ
  *        "compact" … 横いっぱいで背の低い行
  *        省略      … 横いっぱいの標準の行（sub を付けると 2 行になる）
+ *  row      … アイコンの並び（グループ）名。変わると改行される
+ *  rowLabel … その並びの下に出す小さな見出し（先頭の項目に書く）
+ *  badge    … アイコンの右上に付く小さなラベル
  *  title はアイコンだけの場合も必要（読み上げと補助表示に使う） */
 const LINKS = [
   {
@@ -15,6 +18,7 @@ const LINKS = [
     icon: "instagram",
     accent: "linear-gradient(135deg,#f9ce34,#ee2a7b 48%,#6228d7)",
     size: "icon",
+    row: "sns",
   },
   {
     title: "TikTok",
@@ -22,27 +26,35 @@ const LINKS = [
     icon: "tiktok",
     accent: "linear-gradient(135deg,#25f4ee,#000 55%,#fe2c55)",
     size: "icon",
+    row: "sns",
   },
   {
     title: "こまスタンプ",
     url: "https://line.me/S/sticker/33533275/?lang=ja",
     icon: "line",
     accent: "linear-gradient(135deg,#06c755,#04a544)",
-    size: "compact",
+    size: "icon",
+    row: "stamp",
+    rowLabel: "LINE スタンプ",
+    badge: "1",
   },
   {
     title: "こまスタンプPrt2",
     url: "https://line.me/S/sticker/33782414/?lang=ja",
     icon: "line",
     accent: "linear-gradient(135deg,#06c755,#04a544)",
-    size: "compact",
+    size: "icon",
+    row: "stamp",
+    badge: "2",
   },
   {
     title: "こまスタンプPrt3",
     url: "https://line.me/S/sticker/34081770/?lang=ja",
     icon: "line",
     accent: "linear-gradient(135deg,#06c755,#04a544)",
-    size: "compact",
+    size: "icon",
+    row: "stamp",
+    badge: "3",
   },
 ];
 
@@ -100,7 +112,7 @@ const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matc
 function buildLinks() {
   linksEl.innerHTML = "";
   let iconRow = null;
-  let group = null;
+  let rowName = null;
 
   for (const item of LINKS) {
     const a = document.createElement("a");
@@ -115,31 +127,40 @@ function buildLinks() {
     a.querySelector(".title").textContent = item.title;
     if (item.sub) a.querySelector(".sub").textContent = item.sub;
 
-    if (item.size === "icon") {
-      // アイコンだけのボタンは名前が出ないので、読み上げ用に名前を持たせる
-      a.setAttribute("aria-label", item.title);
-      a.title = item.title;
-      group = null;
-      if (!iconRow) {
-        iconRow = document.createElement("div");
-        iconRow.className = "icon-row";
-        linksEl.appendChild(iconRow);
-      }
-      iconRow.appendChild(a);
-    } else if (item.size === "compact") {
-      // 連続する compact は 1 つの枠にまとめて、区切り線で仕切る
+    if (item.size !== "icon") {
       iconRow = null;
-      if (!group) {
-        group = document.createElement("div");
-        group.className = "link-group";
-        linksEl.appendChild(group);
-      }
-      group.appendChild(a);
-    } else {
-      iconRow = null;
-      group = null;
+      rowName = null;
       linksEl.appendChild(a);
+      continue;
     }
+
+    // アイコンだけのボタンは名前が出ないので、読み上げ用に名前を持たせる
+    a.setAttribute("aria-label", item.title);
+    a.title = item.title;
+    if (item.badge) {
+      const b = document.createElement("span");
+      b.className = "badge";
+      b.setAttribute("aria-hidden", "true");
+      b.textContent = item.badge;
+      a.appendChild(b);
+    }
+
+    if (!iconRow || item.row !== rowName) {
+      rowName = item.row;
+      const block = document.createElement("div");
+      block.className = "icon-block";
+      iconRow = document.createElement("div");
+      iconRow.className = "icon-row";
+      block.appendChild(iconRow);
+      if (item.rowLabel) {
+        const label = document.createElement("p");
+        label.className = "icon-row-label";
+        label.textContent = item.rowLabel;
+        block.appendChild(label);
+      }
+      linksEl.appendChild(block);
+    }
+    iconRow.appendChild(a);
   }
 }
 
