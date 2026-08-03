@@ -235,6 +235,9 @@ body.is-revealed .card-foot { animation-delay: 0.85s; }
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* 中央揃えの文字は、letter-spacing の分だけ最後の字の後ろにも余白が入るため左にずれる。
+   text-indent に letter-spacing と同じ値を入れると字面がちょうど中央にそろう
+   （実測で確認。半分にすると逆に letter-spacing の 1/4 だけ左にずれる）。 */
 .kicker {
   margin: 0 0 6px;
   font-size: 11px;
@@ -257,6 +260,10 @@ body.is-revealed .card-foot { animation-delay: 0.85s; }
   margin: 10px 0 0;
   font-size: 14px;
   letter-spacing: 0.06em;
+  /* 0.06em = letter-spacing の補正。
+     0.25em = 末尾の全角「！」は字面が左半分しかなく、空いた右半分の半量ぶん左に見えるぶんの補正。
+     文末の記号を消したり半角にしたら 0.25em は外すこと。 */
+  text-indent: calc(0.06em + 0.25em);
   color: rgba(255, 255, 255, 0.92);
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.75), 0 1px 16px rgba(0, 0, 0, 0.5);
 }
@@ -280,9 +287,11 @@ body.is-revealed .card-foot { animation-delay: 0.85s; }
 }
 
 .icon-row-label {
-  margin: 5px 0 0;
-  font-size: 10.5px;
+  margin: 6px 0 0;
+  font-size: 11px;
+  font-weight: 600;
   letter-spacing: 0.1em;
+  text-indent: 0.1em;
   color: rgba(255, 255, 255, 0.82);
   text-shadow: 0 1px 5px rgba(0, 0, 0, 0.8);
 }
@@ -423,6 +432,7 @@ body.is-revealed .card-foot { animation-delay: 0.85s; }
   font: inherit;
   font-size: 12.5px;
   letter-spacing: 0.08em;
+  text-indent: 0.08em;
   padding: 8px 12px;
   cursor: pointer;
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);

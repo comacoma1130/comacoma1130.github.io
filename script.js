@@ -35,7 +35,7 @@ const LINKS = [
     accent: "linear-gradient(135deg,#06c755,#04a544)",
     size: "icon",
     row: "stamp",
-    rowLabel: "LINE スタンプ",
+    rowLabel: "こまのスタンプ",
     badge: "1",
   },
   {
